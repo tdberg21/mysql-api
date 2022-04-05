@@ -1,5 +1,6 @@
 const mysql = require('mysql');
-const queries = require('./queries/groceries.queries');
+const authQueries = require('./queries/auth.queries');
+const groceriesQueries = require('./queries/groceries.queries');
 
 const host = process.env.DB_HOST || 'localhost';
 
@@ -20,9 +21,14 @@ con.connect(function(err) {
   if (err) throw err;
   console.log('Connected!');
 
-  con.query(queries.CREATE_GROCERIES_TABLE, function(err, result) {
+  con.query(authQueries.CREATE_USERS_TABLE, function(err, result) {
     if (err) throw err;
-    console.log('Table created or exists already!');
+    console.log('Users table created or exists already!');
+  });
+
+  con.query(groceriesQueries.CREATE_GROCERIES_TABLE, function(err, result) {
+    if (err) throw err;
+    console.log('Groceries table created or exists already!');
   });
 });
 
