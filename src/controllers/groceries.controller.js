@@ -1,57 +1,96 @@
-const con = require("../db-config");
-const queries = require("../queries/groceries.queries");
+const connection = require("../db-config");
+const {
+  ALL_GROCERIES,
+  SINGLE_GROCERIES,
+  INSERT_GROCERY,
+  UPDATE_GROCERY,
+  DELETE_GROCERY,
+} = require("../queries/groceries.queries");
+const query = require("../utils/query");
 
-exports.getAllGroceries = function (req, res) {
-  con.query(queries.ALL_GROCERIES, function (err, result, fields) {
-    if (err) {
-      res.send(err);
-    }
-    res.json(result);
+exports.getAllGroceries = async (req, res) => {
+  const con = await connection().catch((err) => {
+    throw err;
   });
+
+  const groceries = await query(con, ALL_GROCERIES).catch((err) => {
+    res.send(err);
+  });
+
+  if (groceries.length) {
+    res.json(groceries);
+  }
 };
 
 // http://localhost:3000/groceries/1
-exports.getGrocery = function (req, res) {
-  con.query(
-    queries.SINGLE_GROCERY,
-    [req.params.groceryId],
-    function (err, result) {
-      if (err) {
-        res.send(err);
-      }
-      res.json(result);
-    }
-  );
-};
+exports.getGrocery = async (req, res) => {
+  const con = await connection().catch((err) => {
+    throw err;
+  });
 
-exports.createGrocery = function (req, res) {
-  con.query(queries.INSERT_GROCERY, [req.body.name], function (err, result) {
-    if (err) {
+  const grocery = await query(con, SINGLE_GROCERIES, [req.params.groceryId]).catch(
+    (err) => {
       res.send(err);
     }
+  );
+
+  if (grocery.length) {
+    res.json(grocery);
+  }
+};
+
+exports.createGrocery = async (req, res) => {
+  const decoded = req.user;
+
+  if (decoded.id) {
+    const con = await connection().catch((err) => {
+      throw err;
+    });
+
+    const result = await query(con, INSERT_GROCERY, [req.body.name]).catch(
+      (err) => {
+        res.send(err);
+      }
+    );
     console.log(result);
-    res.json({ message: "Number of records inserted: " + result.affectedRows });
-  });
-};
 
-exports.updateGrocery = function (req, res) {
-  con.query(
-    queries.UPDATE_GROCERY,
-    [req.body.name, req.body.status, req.params.groceryId],
-    function (err, data) {
-      if (err) {
-        res.send(err);
-      }
-      res.json(data);
+    if (result.affectedRows === 1) {
+      res.json({ message: 'Added task successfully!' });
     }
-  );
+  }
 };
 
-exports.deleteGrocery = function (req, res) {
-  con.query(queries.DELETE_GROCERY, [req.params.groceryId], function (err) {
-    if (err) {
+exports.updateGrocery = async (req, res) => {
+  const con = await connection().catch((err) => {
+    throw err;
+  });
+
+  const result = await query(con, UPDATE_GROCERY, [
+    req.body.name,
+    req.body.quantity,
+    req.params.groceryId,
+  ]).catch((err) => {
+    res.send(err);
+  });
+
+  if (result.affectedRows === 1) {
+    res.json(result);
+  }
+};
+
+
+exports.deleteGrocery = async (req, res) => {
+  const con = await connection().catch((err) => {
+    throw err;
+  });
+
+  const result = await query(con, DELETE_GROCERY, [req.params.groceryId]).catch(
+    (err) => {
       res.send(err);
     }
-    res.json({ message: "Deleted successfully." });
-  });
+  );
+
+  if (result.affectedRows === 1) {
+    res.json({ message: 'Deleted successfully.' });
+  }
 };

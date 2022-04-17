@@ -1,35 +1,58 @@
-const mysql = require('mysql');
-const authQueries = require('./queries/auth.queries');
-const groceriesQueries = require('./queries/groceries.queries');
+const mysql = require("mysql");
+const { CREATE_USERS_TABLE } = require("./queries/auth.queries");
+const { CREATE_GROCERIES_TABLE } = require("./queries/groceries.queries");
+const query = require("./utils/query");
 
-const host = process.env.DB_HOST || 'localhost';
+const host = process.env.DB_HOST || "localhost";
 
-const user = process.env.DB_USER || 'root';
+const user = process.env.DB_USER || "root";
 
-const password = process.env.DB_PASS || 'password';
+const password = process.env.DB_PASS || "password";
 
-const database = process.env.DB_DATABASE || 'grocerydb';
+const database = process.env.DB_DATABASE || "grocerydb";
 
-const con = mysql.createConnection({
-  host,
-  user,
-  password,
-  database
-});
+const connection = async () =>
+  new Promise((resolve, reject) => {
+    const con = mysql.createConnection({
+      host,
+      user,
+      password,
+      database,
+    });
 
-con.connect(function(err) {
-  if (err) throw err;
-  console.log('Connected!');
+    con.connect((err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+    });
 
-  con.query(authQueries.CREATE_USERS_TABLE, function(err, result) {
-    if (err) throw err;
-    console.log('Users table created or exists already!');
+    resolve(con);
   });
 
-  con.query(groceriesQueries.CREATE_GROCERIES_TABLE, function(err, result) {
-    if (err) throw err;
-    console.log('Groceries table created or exists already!');
+(async () => {
+  const _con = await connection().catch((err) => {
+    throw err;
   });
-});
 
-module.exports = con;
+  const userTableCreated = await query(_con, CREATE_USERS_TABLE).catch(
+    (err) => {
+      console.log(err);
+      reject(err);
+    }
+  );
+
+  const groceriesTableCreated = await query(_con, CREATE_GROCERIES_TABLE).catch(
+    (err) => {
+      console.log(err);
+      reject(err);
+    }
+  );
+
+  if (!!userTableCreated && !!groceriesTableCreated) {
+    console.log('Tables have been created!');
+    // resolve(_con);
+  }
+})();
+
+module.exports = connection;

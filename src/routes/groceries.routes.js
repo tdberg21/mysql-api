@@ -1,15 +1,15 @@
-const controllers = require("../controllers/groceries.controller");
+const { getAllGroceries, createGrocery, getGrocery, updateGrocery, deleteGrocery } = require("../controllers/groceries.controller");
 const express = require("express");
+const canAccess = require("../middleware/auth.middleware");
 
 const groceriesRoutes = express.Router();
 
 groceriesRoutes
-  .get("/", controllers.getAllGroceries)
-  .post("/", controllers.createGrocery);
+  .get("/", canAccess, getAllGroceries).post("/", canAccess, createGrocery);
 
 groceriesRoutes
-  .get("/:groceryId", controllers.getGrocery)
-  .put("/:groceryId", controllers.updateGrocery)
-  .delete("/:groceryId", controllers.deleteGrocery);
+  .get("/:groceryId", canAccess, getGrocery)
+  .put("/:groceryId", canAccess, updateGrocery)
+  .delete("/:groceryId", canAccess, deleteGrocery);
 
 module.exports = groceriesRoutes;

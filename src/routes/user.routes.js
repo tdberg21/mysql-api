@@ -1,12 +1,12 @@
-const express = require('express');
-const authController = require('../controllers/auth.controller');
-const userController = require('../controllers/user.controller');
-const verifyToken = require('../middleware/auth.middleware');
+const express = require("express");
+const authController = require("../controllers/auth.controller");
+const { getUser, updateUser } = require("../controllers/user.controller");
+const canAccess = require("../middleware/auth.middleware");
 
 const userRoutes = express.Router();
 
-userRoutes.get('/me', userController.getMe); // /api/user/me
+userRoutes.get("/me", getUser);
 
-userRoutes.post('/me/update', verifyToken, authController.updateUser);
+userRoutes.post("/me/update", updateUser);
 
 module.exports = userRoutes;
